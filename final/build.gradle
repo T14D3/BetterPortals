@@ -4,7 +4,7 @@ plugins {
 
 dependencies {
     implementation project(':shared')
-    implementation project(':bukkit')
+    implementation project(path: ':bukkit', configuration: 'reobf')
     implementation project(':bungee')
     implementation project(':api')
     implementation project(':velocity')
