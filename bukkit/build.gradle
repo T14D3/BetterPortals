@@ -37,7 +37,7 @@ bukkit {
     apiVersion = '1.13'
     author = 'lauriethefish@outlook.com'
     depend = ['ProtocolLib']
-    softDepend = ['Multiverse-Core']
+    softDepend = ['Multiverse-Core', 'My_Worlds']
 
     commands {
         betterportals {
