@@ -29,8 +29,8 @@ allprojects {
         implementation 'org.jetbrains:annotations:23.0.0'
         implementation 'com.google.code.findbugs:jsr305:3.0.2'
 
-        compileOnly 'org.projectlombok:lombok:1.18.24'
-        testImplementation 'org.projectlombok:lombok:1.18.22'
+        compileOnly 'org.projectlombok:lombok:1.18.26'
+        testImplementation 'org.projectlombok:lombok:1.18.26'
         annotationProcessor 'org.projectlombok:lombok:1.18.22'
         testAnnotationProcessor 'org.projectlombok:lombok:1.18.22'
         testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.0'
