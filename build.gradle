@@ -26,7 +26,7 @@ allprojects {
     dependencies {
         implementation 'com.google.inject:guice:5.1.0'
         implementation 'com.google.inject.extensions:guice-assistedinject:5.1.0'
-        implementation 'org.jetbrains:annotations:23.0.0'
+        implementation 'org.jetbrains:annotations:24.0.1'
         implementation 'com.google.code.findbugs:jsr305:3.0.2'
 
         compileOnly 'org.projectlombok:lombok:1.18.24'
