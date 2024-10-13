@@ -1,0 +1,58 @@
+name: BetterPortals
+version: 0.16.0
+main: com.lauriethefish.betterportals.bukkit.BetterPortals
+description: "Plugin which allows nether portals to be seen through, and allows custom portal creation"
+depend:
+  - ProtocolLib
+api-version: "1.21"
+softdepend:
+  - Multiverse-Core
+  - My_Worlds
+commands:
+  betterportals:
+    description: Main plugin command
+    aliases:
+      - bp
+permissions:
+  betterportals.createfromcoords:
+    description: ' Allows you to use /bp createfromcoords'
+    default: op
+  betterportals.getname:
+    description: ' Allows you to use /bp getname'
+    default: op
+  betterportals.link:
+    description: ' Allows you to create portals with /bp link'
+    default: op
+  betterportals.linkexternal:
+    description: ' Allows you to run /bp linkexternal to create cross-server portals.'
+  betterportals.reconnect:
+    description: ' Allows you to use the /bp reconnect command'
+    default: op
+  betterportals.reload:
+    description: Allows you to use /bp reload
+    default: op
+  betterportals.remove:
+    description: ' Allows you to remove portals that you created'
+    default: op
+  betterportals.remove.others:
+    description: " Allows you to remove nether portals, as well as other portals not\
+      \ created by you"
+    default: op
+  betterportals.see:
+    description: ' Required for any player to see portals'
+    default: "true"
+  betterportals.select:
+    description: Allows you to use /bp origin and /bp destination
+    default: op
+  betterportals.setname:
+    description: ' Allows you to set the name of portals'
+    default: op
+  betterportals.setname.others:
+    description: ' Allows you to set the name of portals that you didn''t create'
+    default: op
+  betterportals.use:
+    description: ' Required for any player to use portals'
+    default: "true"
+  betterportals.wand:
+    description: Allows you to get the portal wand with /bp wands
+    default: op

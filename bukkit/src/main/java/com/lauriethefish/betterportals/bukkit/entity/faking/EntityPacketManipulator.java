@@ -5,6 +5,7 @@ import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.reflect.StructureModifier;
+import com.comphenix.protocol.utility.MinecraftVersion;
 import com.comphenix.protocol.wrappers.*;
 import com.google.inject.Singleton;
 import com.lauriethefish.betterportals.bukkit.math.MathUtil;
@@ -18,7 +19,6 @@ import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 
@@ -71,6 +71,7 @@ public class EntityPacketManipulator implements IEntityPacketManipulator {
     }
 
     private Vector getPositionFromSpawnPacket(PacketContainer packet) {
+        // TODO: SPAWN_ENTITY_PAINTING packet is removed by 1.19
         if(packet.getType() == PacketType.Play.Server.SPAWN_ENTITY_PAINTING) {
             BlockPosition blockPos = packet.getBlockPositionModifier().read(0);
             return blockPos.toVector();
@@ -85,6 +86,7 @@ public class EntityPacketManipulator implements IEntityPacketManipulator {
     }
 
     private void writePositionToSpawnPacket(PacketContainer packet, Vector position) {
+        // TODO: SPAWN_ENTITY_PAINTING packet is removed by 1.19
         if(packet.getType() == PacketType.Play.Server.SPAWN_ENTITY_PAINTING) {
             packet.getBlockPositionModifier().write(0, new BlockPosition(position));
         }   else    {
@@ -105,6 +107,7 @@ public class EntityPacketManipulator implements IEntityPacketManipulator {
         int pitch = RotationUtil.getPacketRotationInt(renderedPos.getPitch());
 
         PacketType packetType = packet.getType();
+        // TODO: SPAWN_ENTITY_PAINTING packet is removed by 1.19
         if(packetType == PacketType.Play.Server.SPAWN_ENTITY_PAINTING) {
             StructureModifier<EnumWrappers.Direction> directions = packet.getDirections();
             EnumWrappers.Direction currentDirection = directions.read(0);
@@ -139,6 +142,7 @@ public class EntityPacketManipulator implements IEntityPacketManipulator {
                 packet.getIntegers().write(4, pitch);
                 packet.getIntegers().write(5, yaw);
             }
+        // TODO: SPAWN_ENTITY_LIVING packet is removed by 1.19
         }   else if(packetType == PacketType.Play.Server.SPAWN_ENTITY_LIVING) {
             packet.getBytes().write(0, (byte) pitch);
             packet.getBytes().write(1, (byte) yaw);
@@ -291,7 +295,21 @@ public class EntityPacketManipulator implements IEntityPacketManipulator {
         packet.getIntegers().write(0, tracker.getEntityId());
 
         WrappedDataWatcher dataWatcher = EntityUtil.getActualDataWatcher(tracker.getEntity()); // Use the Entity's actual data watcher, not ProtocolLib's method which gives us a dummy
-        packet.getWatchableCollectionModifier().write(0, dataWatcher.getWatchableObjects());
+        if (MinecraftVersion.getCurrentVersion().isAtLeast(new MinecraftVersion("1.19.3"))) {
+            List<WrappedDataValue> wrappedDataValueList = dataWatcher.getWatchableObjects().stream()
+                    .filter(Objects::nonNull)
+                    .map(entry -> {
+                        WrappedDataWatcher.WrappedDataWatcherObject dataWatcherObject = entry.getWatcherObject();
+                        return new WrappedDataValue(
+                                dataWatcherObject.getIndex(),
+                                dataWatcherObject.getSerializer(),
+                                entry.getRawValue());
+                    })
+                    .toList();
+            packet.getDataValueCollectionModifier().write(0, wrappedDataValueList);
+        } else {
+            packet.getWatchableCollectionModifier().write(0, dataWatcher.getWatchableObjects());
+        }
 
         sendPacket(packet, players);
     }
@@ -360,24 +378,38 @@ public class EntityPacketManipulator implements IEntityPacketManipulator {
 
     @Override
     public void sendAddPlayerProfile(EntityInfo tracker, Collection<Player> players) {
-        PacketContainer packet = new PacketContainer(PacketType.Play.Server.PLAYER_INFO);
-        packet.getPlayerInfoAction().write(0, EnumWrappers.PlayerInfoAction.ADD_PLAYER);
+        if (MinecraftVersion.getCurrentVersion().isAtLeast(new MinecraftVersion("1.19.3"))) {
+            PacketContainer packet = new PacketContainer(PacketType.Play.Server.PLAYER_INFO);
+            packet.getPlayerInfoActions().write(0, Set.of(EnumWrappers.PlayerInfoAction.ADD_PLAYER));
 
-        List<PlayerInfoData> playerInfoDataList = new ArrayList<>();
-        playerInfoDataList.add(generatePlayerInfoData(tracker));
-        packet.getPlayerInfoDataLists().write(0, playerInfoDataList);
-        sendPacket(packet, players);
+            List<PlayerInfoData> playerInfoDataList = new ArrayList<>();
+            playerInfoDataList.add(generatePlayerInfoData(tracker));
+            packet.getPlayerInfoDataLists().write(1, playerInfoDataList);
+            sendPacket(packet, players);
+        } else {
+            PacketContainer packet = new PacketContainer(PacketType.Play.Server.PLAYER_INFO);
+            packet.getPlayerInfoAction().write(0, EnumWrappers.PlayerInfoAction.ADD_PLAYER);
+
+            List<PlayerInfoData> playerInfoDataList = new ArrayList<>();
+            playerInfoDataList.add(generatePlayerInfoData(tracker));
+            packet.getPlayerInfoDataLists().write(0, playerInfoDataList);
+            sendPacket(packet, players);
+        }
     }
 
     @Override
     public void sendRemovePlayerProfile(EntityInfo tracker, Collection<Player> players) {
-        PacketContainer packet = new PacketContainer(PacketType.Play.Server.PLAYER_INFO);
-        packet.getPlayerInfoAction().write(0, EnumWrappers.PlayerInfoAction.REMOVE_PLAYER);
+        if (MinecraftVersion.getCurrentVersion().isAtLeast(new MinecraftVersion("1.19.3"))) {
+            // TODO: REMOVE_PLAYER packet is removed by 1.19.3, do we need to do anything here?
+        } else {
+            PacketContainer packet = new PacketContainer(PacketType.Play.Server.PLAYER_INFO);
+            packet.getPlayerInfoAction().write(0, EnumWrappers.PlayerInfoAction.REMOVE_PLAYER);
 
-        List<PlayerInfoData> playerInfoDataList = new ArrayList<>();
-        playerInfoDataList.add(generatePlayerInfoData(tracker));
-        packet.getPlayerInfoDataLists().write(0, playerInfoDataList);
-        sendPacket(packet, players);
+            List<PlayerInfoData> playerInfoDataList = new ArrayList<>();
+            playerInfoDataList.add(generatePlayerInfoData(tracker));
+            packet.getPlayerInfoDataLists().write(0, playerInfoDataList);
+            sendPacket(packet, players);
+        }
     }
 
     private void sendPacket(PacketContainer packet, Collection<Player> players) {
@@ -386,7 +418,7 @@ public class EntityPacketManipulator implements IEntityPacketManipulator {
             for (Player player : players) {
                 protocolManager.sendServerPacket(player, packet);
             }
-        }   catch(InvocationTargetException ex) {
+        }   catch(Exception ex) {
             throw new RuntimeException("Failed to send packet", ex);
         }
     }

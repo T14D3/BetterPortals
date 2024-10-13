@@ -49,8 +49,6 @@ public class MainModule extends AbstractModule {
 
         bind(BlockUpdateFinisher.class).to(ThreadedBlockUpdateFinisher.class);
 
-        bind(MetricsManager.class).asEagerSingleton();
-
         install(new EventsModule());
         install(new CommandsModule());
         install(new PortalModule());

@@ -1,99 +1,25 @@
 plugins {
-    id 'net.minecrell.plugin-yml.bukkit' version '0.5.2'
+    id("io.papermc.paperweight.userdev") version "1.7.1"
 }
 
 repositories {
+    maven { url "https://repo.dmulloy2.net/repository/public/" }
+    maven {
+        url = uri("https://repo.papermc.io/repository/maven-public/")
+    }
     mavenCentral()
-    maven { url "https://repo.dmulloy2.net/nexus/repository/public/" }
     maven { url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
     maven { url = 'https://oss.sonatype.org/content/repositories/snapshots' }
 }
 
 
 dependencies {
-    implementation 'org.bstats:bstats-bukkit:3.0.0'
-    testImplementation 'com.github.seeseemelk:MockBukkit-v1.17:1.13.0'
-    testImplementation 'com.comphenix.protocol:ProtocolLib:4.8.0'
+    testImplementation 'com.comphenix.protocol:ProtocolLib:5.0.0'
+    testImplementation("io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT")
 
     implementation project(':shared')
     implementation project(':api')
-    compileOnly 'com.comphenix.protocol:ProtocolLib:4.8.0'
-    compileOnly 'org.spigotmc:spigot-api:1.19-R0.1-SNAPSHOT'
-}
-
-bukkit {
-    main = 'com.lauriethefish.betterportals.bukkit.BetterPortals'
-    name = 'BetterPortals'
-    version = project.version
-    description = 'Plugin which allows nether portals to be seen through, and allows custom portal creation'
-    website = 'https://www.spigotmc.org/resources/betterportals.75409/'
-    apiVersion = '1.13'
-    author = 'lauriethefish@outlook.com'
-    depend = ['ProtocolLib']
-    softDepend = ['Multiverse-Core', 'My_Worlds']
-
-    commands {
-        betterportals {
-            description = 'Main plugin command'
-            aliases = ['bp']
-        }
-    }
-
-    permissions {
-        'betterportals.reload' {
-            description = 'Allows you to use /bp reload'
-            setDefault('OP')
-        }
-        'betterportals.wand' {
-            description = 'Allows you to get the portal wand with /bp wands'
-            setDefault('OP')
-        }
-        'betterportals.select' {
-            description = 'Allows you to use /bp origin and /bp destination'
-            setDefault('OP')
-        }
-        'betterportals.link' {
-            description = ' Allows you to create portals with /bp link'
-            setDefault('OP')
-        }
-        'betterportals.linkexternal' {
-            description = ' Allows you to run /bp linkexternal to create cross-server portals.'
-        }
-        'betterportals.remove' {
-            description = ' Allows you to remove portals that you created'
-            setDefault('OP')
-        }
-        'betterportals.remove.others' {
-            description = ' Allows you to remove nether portals, as well as other portals not created by you'
-            setDefault('OP')
-        }
-        'betterportals.reconnect' {
-            description = ' Allows you to use the /bp reconnect command'
-            setDefault('OP')
-        }
-        'betterportals.see' {
-            description = ' Required for any player to see portals'
-            setDefault('TRUE')
-        }
-        'betterportals.use' {
-            description = ' Required for any player to use portals'
-            setDefault('TRUE')
-        }
-        'betterportals.setname' {
-            description = ' Allows you to set the name of portals'
-            setDefault('OP')
-        }
-        'betterportals.setname.others' {
-            description = ' Allows you to set the name of portals that you didn\'t create'
-            setDefault('OP')
-        }
-        'betterportals.getname' {
-            description = ' Allows you to use /bp getname'
-            setDefault('OP')
-        }
-        'betterportals.createfromcoords' {
-            description = ' Allows you to use /bp createfromcoords'
-            setDefault('OP')
-        }
-    }
+    compileOnly 'com.comphenix.protocol:ProtocolLib:5.0.0'
+    compileOnly("io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT")
+    paperweight.paperDevBundle("1.21.1-R0.1-SNAPSHOT")
 }

@@ -4,53 +4,27 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.BlockPosition;
 import com.comphenix.protocol.wrappers.nbt.NbtCompound;
 import com.lauriethefish.betterportals.api.IntVector;
-import com.lauriethefish.betterportals.bukkit.util.VersionUtil;
-import com.lauriethefish.betterportals.shared.util.ReflectionUtil;
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.world.level.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.craftbukkit.block.CraftBlockEntityState;
+import org.bukkit.craftbukkit.block.data.CraftBlockData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.reflect.Method;
 import java.util.Objects;
 
 public class BlockDataUtil {
-    private static final Method GET_HANDLE;
-    private static final Method GET_COMBINED_ID;
-    private static final Method GET_FROM_COMBINED_ID;
-    private static final Method FROM_HANDLE;
-    private static final Method GET_TILE_ENTITY;
-    private static final Method GET_UPDATE_PACKET;
-    private static final BlockData DEFAULT_BLOCK_DATA;
-
-    static {
-        DEFAULT_BLOCK_DATA = Bukkit.createBlockData(Material.AIR);
-        Class<?> nmsBlock = ReflectionUtil.findClass("net.minecraft.world.level.block.Block");
-        Class<?> craftBlockData = CraftBukkitClassUtil.findCraftBukkitClass("block.data.CraftBlockData");
-        Class<?> nmsBlockData = ReflectionUtil.findClass("net.minecraft.world.level.block.state.IBlockData");
-
-        GET_HANDLE = ReflectionUtil.findMethod(craftBlockData, "getState");
-        GET_COMBINED_ID = ReflectionUtil.findMethod(nmsBlock, VersionUtil.isMcVersionAtLeast("1.18.0") ? "i" : "getCombinedId", nmsBlockData);
-
-        GET_FROM_COMBINED_ID = ReflectionUtil.findMethod(nmsBlock, VersionUtil.isMcVersionAtLeast("1.18.0") ? "a" : "getByCombinedId", int.class);
-        FROM_HANDLE = ReflectionUtil.findMethod(craftBlockData, "fromData", nmsBlockData);
-
-        Class<?> blockEntityState = CraftBukkitClassUtil.findCraftBukkitClass("block.CraftBlockEntityState");
-        Class<?> nmsTileEntity = ReflectionUtil.findClass("net.minecraft.world.level.block.entity.TileEntity");
-        GET_TILE_ENTITY = ReflectionUtil.findMethod(blockEntityState, "getTileEntity");
-        GET_UPDATE_PACKET = ReflectionUtil.findMethod(nmsTileEntity, VersionUtil.isMcVersionAtLeast("1.18.0") ? "h" : "getUpdatePacket");
-    }
-
     /**
      * Converts <code>blockData</code> into a combined ID that stores all info about the block.
      * @param blockData The data to convert
      * @return The combined ID of the data
      */
     public static int getCombinedId(@NotNull BlockData blockData) {
-        Object nmsData = ReflectionUtil.invokeMethod(blockData, GET_HANDLE);
-        return (int) ReflectionUtil.invokeMethod(null, GET_COMBINED_ID, nmsData);
+        CraftBlockData data = (CraftBlockData) blockData;
+        return Block.getId(data.getState());
     }
 
     /**
@@ -59,10 +33,7 @@ public class BlockDataUtil {
      * @return The bukkit block data
      */
     public static BlockData getByCombinedId(int combinedId) {
-        Object nmsData = ReflectionUtil.invokeMethod(null, GET_FROM_COMBINED_ID, combinedId);
-        BlockData data = (BlockData) ReflectionUtil.invokeMethod(null, FROM_HANDLE, nmsData);
-
-        return data == null ? DEFAULT_BLOCK_DATA : data;
+        return Block.stateById(combinedId).createCraftBlockData();
     }
 
     /**
@@ -71,18 +42,16 @@ public class BlockDataUtil {
      * @return The ProtocolLib wrapper
      */
     public static @Nullable PacketContainer getUpdatePacket(@NotNull BlockState tileState) {
-        Object nmsTileEntity = ReflectionUtil.invokeMethod(tileState, GET_TILE_ENTITY);
-        Object unwrappedPacket = ReflectionUtil.invokeMethod(nmsTileEntity, GET_UPDATE_PACKET);
-
-        if(unwrappedPacket == null) {
+        CraftBlockEntityState<?> state = (CraftBlockEntityState<?>) tileState;
+        Packet<ClientGamePacketListener> updatePacket = state.getTileEntity().getUpdatePacket();
+        if (updatePacket == null) {
             return null;
         }
-
-        return PacketContainer.fromPacket(unwrappedPacket);
+        return PacketContainer.fromPacket(updatePacket);
     }
 
     /**
-     * Sets the position of a <code>PacketPlayOutTileEntityData</code> in both the NBT and packet itself
+     * Sets the position of a <code>PacketPlayOutTileEntityData</code> in both the NBT and packet itself.
      * @param packet The packet to modify the position of
      * @param position The new position
      */

@@ -169,7 +169,7 @@ public class PlayerBlockView implements IPlayerBlockView   {
                 for (PacketContainer packet : queuedTileEntityUpdates) {
                     ProtocolLibrary.getProtocolManager().sendServerPacket(player, packet);
                 }
-            } catch (InvocationTargetException ex) {
+            } catch (Exception ex) {
                 throw new RuntimeException(ex);
             }
 

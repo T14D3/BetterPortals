@@ -6,18 +6,19 @@ import com.google.inject.Singleton;
 import com.lauriethefish.betterportals.api.IntVector;
 import com.lauriethefish.betterportals.api.PortalPosition;
 import com.lauriethefish.betterportals.shared.logging.Logger;
+import io.papermc.paper.registry.RegistryAccess;
+import io.papermc.paper.registry.RegistryKey;
 import lombok.Getter;
+import net.kyori.adventure.key.Key;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.block.BlockType;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 @Singleton
 @Getter
@@ -62,8 +63,10 @@ public class RenderConfig {
 
     private @Nullable WrappedBlockData parseBlockData(String str) {
         try {
-            return WrappedBlockData.createData(Material.valueOf(str.toUpperCase(Locale.ROOT)));
-        }   catch(IllegalArgumentException ex) {
+            BlockType blockType = RegistryAccess.registryAccess().getRegistry(RegistryKey.BLOCK)
+                    .getOrThrow(Key.key(str.toLowerCase(Locale.ROOT)));
+            return WrappedBlockData.createData(blockType.asMaterial());
+        }   catch(NoSuchElementException | IllegalArgumentException | NullPointerException ex) {
             logger.warning("Unknown material for portal edge block " + str);
             logger.warning("Using default of black concrete");
             return null;

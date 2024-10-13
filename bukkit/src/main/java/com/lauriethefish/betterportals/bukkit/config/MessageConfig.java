@@ -3,18 +3,21 @@ package com.lauriethefish.betterportals.bukkit.config;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.lauriethefish.betterportals.bukkit.command.framework.CommandException;
-import com.lauriethefish.betterportals.bukkit.nms.NBTTagUtil;
 import com.lauriethefish.betterportals.shared.logging.Logger;
 import lombok.Getter;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
@@ -28,6 +31,8 @@ public class MessageConfig {
     private final Logger logger;
     private final Map<String, String> messageMap = new HashMap<>();
 
+    private final NamespacedKey key;
+
     private String portalWandName;
     @Getter private String prefix;
     @Getter private String messageColor;
@@ -37,6 +42,7 @@ public class MessageConfig {
     @Inject
     public MessageConfig(Logger logger) {
         this.logger = logger;
+        key = new NamespacedKey("betterportals", PORTAL_WAND_TAG.toLowerCase(Locale.ROOT));
     }
 
     public void load(FileConfiguration file) {
@@ -119,14 +125,10 @@ public class MessageConfig {
     public @NotNull ItemStack getPortalWand() {
         if(portalWand == null) {
             portalWand = new ItemStack(Material.BLAZE_ROD);
-
-            ItemMeta meta = portalWand.getItemMeta();
-            assert meta != null;
-            meta.setDisplayName(portalWandName);
-
-            portalWand.setItemMeta(meta);
-            // Portal wand checking is done with an NBT tag
-            portalWand = NBTTagUtil.addMarkerTag(portalWand, PORTAL_WAND_TAG);
+            portalWand.editMeta(meta -> {
+                meta.displayName(LegacyComponentSerializer.legacyAmpersand().deserialize(portalWandName));
+                meta.getPersistentDataContainer().set(key, PersistentDataType.BOOLEAN, true);
+            });
         }
 
         return portalWand;
@@ -138,7 +140,8 @@ public class MessageConfig {
      * @return true if it is a valid portal wand, false otherwise
      */
     public boolean isPortalWand(ItemStack item) {
-        return NBTTagUtil.hasMarkerTag(item, PORTAL_WAND_TAG);
+        return item.hasItemMeta()
+                && Boolean.TRUE.equals(item.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.BOOLEAN));
     }
 
     /**

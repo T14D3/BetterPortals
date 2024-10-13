@@ -25,6 +25,7 @@ public class VelocityProxy implements IProxy {
         this.pluginVersion = pluginVersion;
     }
 
+    @Deprecated
     @Override
     public @Nullable String findServer(InetSocketAddress clientAddress) {
         for(RegisteredServer server : proxyServer.getAllServers()) {
@@ -50,12 +51,12 @@ public class VelocityProxy implements IProxy {
     @Override
     public void changePlayerServer(UUID uid, String destinationServer) {
         Optional<Player> player = proxyServer.getPlayer(uid);
-        if(!player.isPresent()) {
+        if(player.isEmpty()) {
             throw new IllegalArgumentException(String.format("No player existed with UUID %s", uid));
         }
 
         Optional<RegisteredServer> server = proxyServer.getServer(destinationServer);
-        if(!server.isPresent()) {
+        if(server.isEmpty()) {
             throw new IllegalArgumentException(String.format("No server existed with the UUID %s", destinationServer));
         }
 
