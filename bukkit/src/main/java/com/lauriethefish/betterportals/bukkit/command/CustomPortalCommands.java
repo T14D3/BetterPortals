@@ -11,6 +11,10 @@ import com.lauriethefish.betterportals.bukkit.player.IPlayerData;
 import com.lauriethefish.betterportals.bukkit.portal.IPortal;
 import com.lauriethefish.betterportals.bukkit.portal.IPortalManager;
 import com.lauriethefish.betterportals.bukkit.portal.selection.IPortalSelection;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
@@ -22,10 +26,9 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-
 @Singleton
 public class CustomPortalCommands {
-    private static final String[] EASTER_EGG_NAMES = new String[]{"dinnerbone"};
+    private static final String[] EASTER_EGG_NAMES = new String[]{"dinnerbone", "grumm"};
     private static final double MODIFY_DISTANCE = 20.0;
 
     private final IPortalManager portalManager;
@@ -33,8 +36,11 @@ public class CustomPortalCommands {
     private final IPortal.Factory portalFactory;
     private final Provider<IPortalSelection> selectionProvider;
 
+    private static final MiniMessage MINI = MiniMessage.miniMessage();
+
     @Inject
-    public CustomPortalCommands(CommandTree commandTree, IPortalManager portalManager, MessageConfig messageConfig, IPortal.Factory portalFactory, Provider<IPortalSelection> selectionProvider) {
+    public CustomPortalCommands(CommandTree commandTree, IPortalManager portalManager, MessageConfig messageConfig,
+                                IPortal.Factory portalFactory, Provider<IPortalSelection> selectionProvider) {
         this.portalManager = portalManager;
         this.messageConfig = messageConfig;
         this.portalFactory = portalFactory;
@@ -45,11 +51,18 @@ public class CustomPortalCommands {
 
     private @NotNull IPortal getClosestPortal(Player player) throws CommandException {
         IPortal portal = portalManager.findClosestPortal(player.getLocation(), MODIFY_DISTANCE);
-        if(portal == null) {
+        if (portal == null) {
             throw new CommandException(messageConfig.getErrorMessage("noPortalCloseEnough"));
         }
-
         return portal;
+    }
+
+    private Component applyPlaceholders(Component template, TagResolver... resolvers) {
+        String serialized = MINI.serialize(template);
+        if (resolvers == null || resolvers.length == 0) {
+            return MINI.deserialize(serialized);
+        }
+        return MINI.deserialize(serialized, TagResolver.resolver(resolvers));
     }
 
     @Command
@@ -59,16 +72,18 @@ public class CustomPortalCommands {
     @Argument(name = "portalName")
     @Aliases("deletename")
     public boolean removePortalsByName(CommandSender sender, String portalName) throws CommandException {
-        List<IPortal> toRemove = portalManager
-                .getAllPortals()
-                .stream()
+        List<IPortal> toRemove = portalManager.getAllPortals().stream()
                 .filter(portal -> portalName.equals(portal.getName()))
                 .collect(Collectors.toList());
 
-
-        if(toRemove.size() == 0) {
-            throw new CommandException(messageConfig.getErrorMessage("noPortalsWithName").replace("{name}", portalName));
-        }   else    {
+        if (toRemove.isEmpty()) {
+            throw new CommandException(
+                    applyPlaceholders(
+                            messageConfig.getErrorMessage("noPortalsWithName"),
+                            Placeholder.parsed("name", portalName)
+                    )
+            );
+        } else {
             toRemove.forEach(portalManager::removePortal);
             sender.sendMessage(messageConfig.getChatMessage("portalsRemoved"));
             return true;
@@ -97,11 +112,9 @@ public class CustomPortalCommands {
                                          Vector destCorner2,
                                          String twoWayStr,
                                          String invertStr,
-                                         String name
-    ) throws CommandException {
-        if(" no name".equals(name)) {
-            name = null;
-        }
+                                         String name) throws CommandException {
+
+        if (" no name".equals(name)) name = null;
 
         boolean twoWay = twoWayStr.equalsIgnoreCase("true") || twoWayStr.equalsIgnoreCase("twoWay") || twoWayStr.equalsIgnoreCase("dual");
         boolean invert = invertStr.equalsIgnoreCase("true") || invertStr.equalsIgnoreCase("invert");
@@ -109,26 +122,23 @@ public class CustomPortalCommands {
         IPortalSelection origin = makeSelection(originWorld, originCorner1, originCorner2);
         IPortalSelection dest = makeSelection(destWorld, destCorner1, destCorner2);
 
-        if(!origin.getPortalSize().equals(dest.getPortalSize())) {
+        if (!origin.getPortalSize().equals(dest.getPortalSize())) {
             throw new CommandException(messageConfig.getErrorMessage("differentSizes"));
         }
 
-        if(invert) {
-            dest.invertDirection();
-        }
+        if (invert) dest.invertDirection();
 
         IPortal portal = portalFactory.create(origin.getPortalPosition(), dest.getPortalPosition(),
                 origin.getPortalSize(), true, UUID.randomUUID(), null, name, true);
         portalManager.registerPortal(portal);
 
-        // Add another portal going back if we're in two way mode
-        if(twoWay) {
+        if (twoWay) {
             IPortal reversePortal = portalFactory.create(dest.getPortalPosition(), origin.getPortalPosition(),
                     origin.getPortalSize(), true, UUID.randomUUID(), null, name, true);
             portalManager.registerPortal(reversePortal);
         }
-        sender.sendMessage(messageConfig.getChatMessage("portalCreated"));
 
+        sender.sendMessage(messageConfig.getChatMessage("portalCreated"));
         return true;
     }
 
@@ -137,12 +147,19 @@ public class CustomPortalCommands {
         selection.setPositionA(corner1.toLocation(world));
         selection.setPositionB(corner2.toLocation(world));
 
-        if(!selection.isValid()) {
-            throw new CommandException(String.format(messageConfig.getErrorMessage("coordinatesNotInLine"),
-                    corner1.getBlockX(), corner1.getBlockY(), corner1.getBlockZ(),
-                    corner2.getBlockX(), corner2.getBlockY(), corner2.getBlockZ()));
+        if (!selection.isValid()) {
+            throw new CommandException(
+                    applyPlaceholders(
+                            messageConfig.getErrorMessage("coordinatesNotInLine"),
+                            Placeholder.parsed("x1", String.valueOf(corner1.getBlockX())),
+                            Placeholder.parsed("y1", String.valueOf(corner1.getBlockY())),
+                            Placeholder.parsed("z1", String.valueOf(corner1.getBlockZ())),
+                            Placeholder.parsed("x2", String.valueOf(corner2.getBlockX())),
+                            Placeholder.parsed("y2", String.valueOf(corner2.getBlockY())),
+                            Placeholder.parsed("z2", String.valueOf(corner2.getBlockZ()))
+                    )
+            );
         }
-
         return selection;
     }
 
@@ -156,14 +173,13 @@ public class CustomPortalCommands {
     public boolean deleteNearest(Player player, boolean removeDestination) throws CommandException {
         IPortal portal = getClosestPortal(player);
 
-        // If the player doesn't own the portal, and doesn't have permission to remove portals that aren't theirs, don't remove
-        if(!player.hasPermission("betterportals.remove.others") && !player.getUniqueId().equals(portal.getOwnerId())) {
+        if (!player.hasPermission("betterportals.remove.others") && !player.getUniqueId().equals(portal.getOwnerId())) {
             throw new CommandException(messageConfig.getErrorMessage("removeNotOwnedByPlayer"));
         }
 
         portalManager.removePortal(portal);
-        // We can't remove the destination on cross-server portals
-        if(removeDestination && !portal.isCrossServer()) {
+
+        if (removeDestination && !portal.isCrossServer()) {
             Location destPosition = portal.getDestPos().getLocation();
             portalManager.removePortalsAt(destPosition);
         }
@@ -178,7 +194,7 @@ public class CustomPortalCommands {
     @RequiresPermissions("betterportals.select")
     @RequiresPlayer
     @Description("Sets the current portal wand selection as your origin position")
-    public boolean setOrigin(IPlayerData playerData) throws CommandException    {
+    public boolean setOrigin(IPlayerData playerData) throws CommandException {
         playerData.getSelection().trySelectOrigin();
         playerData.getPlayer().sendMessage(messageConfig.getChatMessage("originPortalSet"));
         return true;
@@ -190,7 +206,7 @@ public class CustomPortalCommands {
     @RequiresPermissions("betterportals.select")
     @RequiresPlayer
     @Description("Sets the current portal wand selection as your destination position")
-    public boolean setDestination(IPlayerData playerData) throws CommandException    {
+    public boolean setDestination(IPlayerData playerData) throws CommandException {
         playerData.getSelection().trySelectDestination();
         playerData.getPlayer().sendMessage(messageConfig.getChatMessage("destPortalSet"));
         return true;
@@ -305,8 +321,8 @@ public class CustomPortalCommands {
             throw new CommandException(messageConfig.getErrorMessage("noName"));
         }
 
-        String nameFormat = messageConfig.getChatMessage("currentName");
-        nameFormat = nameFormat.replace("{name}", portal.getName());
+        Component nameFormat = messageConfig.getChatMessage("currentName");
+        nameFormat = applyPlaceholders(nameFormat, Placeholder.parsed("name", name));
         player.sendMessage(nameFormat);
         return true;
     }

@@ -10,6 +10,7 @@ import com.lauriethefish.betterportals.bukkit.portal.IPortalManager;
 import com.lauriethefish.betterportals.bukkit.portal.spawning.IPortalSpawner;
 import com.lauriethefish.betterportals.bukkit.portal.spawning.PortalSpawnPosition;
 import com.lauriethefish.betterportals.shared.logging.Logger;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -92,8 +93,8 @@ public class SpawningEvents implements Listener {
             logger.fine("Not spawning portal - too big: %s", size);
 
             // Make sure to replace the current size place holder
-            String msg = messageConfig.getWarningMessage("portalTooBig");
-            msg = msg.replace("{size}", String.format("%dx%d", maxSize.getBlockX(), maxSize.getBlockY()));
+            Component msg = messageConfig.getWarningMessage("portalTooBig");
+            msg = msg.replaceText(builder -> builder.matchLiteral("{size}").replacement(String.format("%dx%d", maxSize.getBlockX(), maxSize.getBlockY())));
             sendMessageToLighter(event, msg);
             return;
         }
@@ -152,8 +153,8 @@ public class SpawningEvents implements Listener {
      * @param event Event to find the lighter of
      * @param message Message to send. This will do nothing if it's empty
      */
-    private void sendMessageToLighter(@NotNull PortalCreateEvent event, @NotNull String message) {
-        if(message.isEmpty()) {return;}
+    private void sendMessageToLighter(@NotNull PortalCreateEvent event, @NotNull Component message) {
+        if(message.equals(Component.empty())) {return;}
 
         Entity lighter = event.getEntity();
         if(lighter instanceof Player) {

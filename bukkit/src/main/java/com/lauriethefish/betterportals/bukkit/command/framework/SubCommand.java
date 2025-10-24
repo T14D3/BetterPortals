@@ -7,6 +7,10 @@ import com.lauriethefish.betterportals.bukkit.player.IPlayerDataManager;
 import com.lauriethefish.betterportals.shared.logging.Logger;
 import com.lauriethefish.betterportals.shared.util.ReflectionUtil;
 import lombok.Getter;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -22,6 +26,12 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.*;
 
+import static com.lauriethefish.betterportals.bukkit.util.ComponentUtil.applyPlaceholders;
+
+/**
+ * Represents a single annotated sub-command method.  Where placeholders are required
+ * the component templates from MessageConfig are resolved via {@link MiniMessage} + {@link Placeholder}.
+ */
 public class SubCommand implements ICommand {
     private final Object instance;
     private final Method method;
@@ -30,6 +40,7 @@ public class SubCommand implements ICommand {
     private final IPlayerDataManager playerDataManager;
 
     private static final Map<Class<?>, Method> valueOfCache = new HashMap<>();
+    private static final MiniMessage MINI = MiniMessage.miniMessage();
 
     private boolean requiresPlayer = false;
     private boolean usePlayerData; // Whether or not we'll automatically fetch the IPlayerData for the first argument
@@ -139,7 +150,13 @@ public class SubCommand implements ICommand {
         try {
             return normalizeLocalCoordinates(x, y, z, (sender instanceof Player player) ? player.getLocation() : null);
         }   catch(NumberFormatException ignored) {
-            throw new CommandException(String.format(messageConfig.getErrorMessage("invalidCoordinates"), x, y, z));
+            // Use component-based error with placeholders
+            Component template = messageConfig.getErrorMessage("invalidCoordinates");
+            Component resolved = applyPlaceholders(template,
+                    Placeholder.parsed("x", x),
+                    Placeholder.parsed("y", y),
+                    Placeholder.parsed("z", z));
+            throw new CommandException(resolved);
         }
     }
 
@@ -152,7 +169,8 @@ public class SubCommand implements ICommand {
         }
 
         if(world == null) {
-            throw new CommandException(messageConfig.getErrorMessage("noWorldExistsWithGivenName").replace("{name}", worldName));
+            Component template = messageConfig.getErrorMessage("noWorldExistsWithGivenName");
+            throw new CommandException(applyPlaceholders(template, Placeholder.parsed("name", worldName)));
         }
 
         return world;
@@ -163,7 +181,7 @@ public class SubCommand implements ICommand {
             @NotNull String y,
             @NotNull String z,
             @Nullable Location playerLocation)
-        throws CommandException,
+            throws CommandException,
             NumberFormatException {
         int coordinateType = 0; // 0: X, 1: Y, 2: Z
         Vector normalizedLocation = new Vector(0, 0, 0); // Will store the converted location
@@ -198,6 +216,7 @@ public class SubCommand implements ICommand {
                 // Y is handled like standard local coordinate
                 if (coordinateType == 1) {
                     normalizedLocation.setY( playerLocation.getBlockY() + Integer.parseInt(coordinateToConvert.replace("^", "")) );
+                    coordinateType++;
                     continue;
                 }
 
@@ -276,7 +295,9 @@ public class SubCommand implements ICommand {
                 if(argument.equalsIgnoreCase("false") || argument.equalsIgnoreCase("no")) {
                     return false;
                 }
-                throw new CommandException(messageConfig.getErrorMessage("invalidBoolean").replace("{arg}", argument));
+                // Invalid boolean: use component with placeholder
+                Component template = messageConfig.getErrorMessage("invalidBoolean");
+                throw new CommandException(applyPlaceholders(template, Placeholder.parsed("arg", argument)));
             }   else if(type.isPrimitive()) {
                 throw new InvalidCommandException("Unknown primitive type on command argument");
             }   else    {
@@ -310,7 +331,9 @@ public class SubCommand implements ICommand {
     }
 
     private void displayUsage(String pathToCall) throws CommandException {
-        throw new CommandException("Usage: " + pathToCall + usage);
+        // Convert usage text to a simple component for consistency with component-based messages.
+        Component comp = Component.text("Usage: " + pathToCall + usage);
+        throw new CommandException(comp);
     }
 
     public boolean hasPermissions(CommandSender sender) {
@@ -393,4 +416,5 @@ public class SubCommand implements ICommand {
             }
         }
     }
+
 }

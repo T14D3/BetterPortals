@@ -96,7 +96,7 @@ public class UpdateManager {
         if (!VersionUtil.isVersionGreaterOrEq(currentVersion, latestVersionStr)) {
             String downloadUrl = String.format(UPDATE_DOWNLOAD_URL_FORMAT, latestVersionId);
 
-            String msg = messageConfig.getRawMessage("outOfDate");
+            String msg = messageConfig.getString(("outOfDate"));
             msg = msg.replace("{url}", downloadUrl);
             msg = msg.replace("{current}", currentVersion);
             msg = msg.replace("{new}", latestVersionStr);

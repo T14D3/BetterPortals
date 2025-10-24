@@ -81,7 +81,6 @@ worldBackgroundBlocks:
 # Overrides all worldBackgroundBlocks if not empty
 backgroundBlock: ''
 
-
 teleportCooldown: 2 # How long to wait before a player can go back after going through a portal (0 to disable)
 
 # Enables or disables the default world connections between the default overworld and nether worlds if they exist
@@ -145,24 +144,26 @@ dimensionBlend:
   fallOffRate: 0.15 # Low values mean a greater distance
 
 chatMessages:
-  prefix: "&7[&aBetterPortals&7]&a "
-  messageColor: "&a" # One colour that chat messages without a full prefix use
+  # prefix uses MiniMessage colour tags; use it with other messages when needed.
+  prefix: "<gray>[<green>BetterPortals</green>]</gray><green> </green>"
+  # messageColor is intentionally a raw MiniMessage open tag. When combining, close it where appropriate.
+  messageColor: "<green>"
 
-  notEnoughPerms: "You do not have permission to use this command!"
-  mustBePlayer: "You must be a player to use this command"
-  mustMakeSelection: "You must make a selection first"
-  invalidSelection: "Invalid selection! Portal selections must be on the two corners of a portal"
-  coordinatesNotInLine: "The given corner coordinates (%d, %d, %d), (%d, %d, %d) are not aligned correctly to produce a flat portal (portals are not allowed on diagonals)"
-  invalidCoordinates: "The coordinates (%s, %s, %s) are not valid integer coordinates, relative or otherwise"
-  cannotUseRelativeCoordinatesWithoutPlayer: "Cannot use relative coordinates when executing command from the console"
-  portalCreated: "Portal created successfully"
-  noWorldExistsWithGivenName: "No world exists called {name}"
+  notEnoughPerms: "<red>You do not have permission to use this command!</red>"
+  mustBePlayer: "<red>You must be a player to use this command</red>"
+  mustMakeSelection: "<yellow>You must make a selection first</yellow>"
+  invalidSelection: "<red>Invalid selection! Portal selections must be on the two corners of a portal</red>"
+  coordinatesNotInLine: "The given corner coordinates (<x1>, <y1>, <z1>), (<x2>, <y2>, <z2>) are not aligned correctly to produce a flat portal (portals are not allowed on diagonals)"
+  invalidCoordinates: "The coordinates (<x>, <y>, <z>) are not valid integer coordinates, relative or otherwise"
+  cannotUseRelativeCoordinatesWithoutPlayer: "<red>Cannot use relative coordinates when executing command from the console</red>"
+  portalCreated: "<green>Portal created successfully</green>"
+  noWorldExistsWithGivenName: "No world exists called <name>"
   mustSelectBothSides: "You must select both sides of a portal first. For info, run /bp help"
   mustSelectOrigin: "You must select the origin of the portal on this server"
   wrongNumberOfArgs: "Wrong number of arguments. Run /bp help for help."
   noCommands: "You don't have permission to use any sub-commands"
   invalidArgs: "One of your arguments was invalid. Run /bp help for help."
-  invalidBoolean: "Could not parse \"{arg}\" as a boolean argument. help: possible values are \"true\" or \"false\" and \"yes\" or \"no\""
+  invalidBoolean: "Could not parse \"<arg>\" as a boolean argument. help: possible values are \"true\" or \"false\" and \"yes\" or \"no\""
   differentSizes: "The origin and destination portal must be of the same size"
   noPortalCloseEnough: "No portal close enough found"
   removeNotOwnedByPlayer: "You do not have permission to remove portals created by other people"
@@ -175,25 +176,30 @@ chatMessages:
   nameNetherPortal: "You can't set the name of a nether portal"
   seeThroughPortalDisabled: "All nether portals will now look like vanilla portals to you!"
   seeThroughPortalEnabled: "All eligible nether portals will now show you what's on the other side."
-  noPortalsWithName: "No portals existed with name {name}"
+  noPortalsWithName: "No portals existed with name <name>"
 
   # Printed if a player lights a portal in an unlinked world
   # To disable, just remove all the text inside the quotes
-  noWorldLink: "Unfortunately, this portal will not be lit since the world that you are in is not linked. (if you have changed the name of your world in server.properties, you need to change it in the config)
-                If you believe this to be a mistake, contact an admin and link this wiki page for adding a world link: https://github.com/Lauriethefish/BetterPortals/wiki/Editing-the-Config-file#world-connections
-                BetterPortals overrides the behaviour of plugins like MultiverseNetherPortals, so these should be uninstalled unless you're in a world that is manually excluded in the config.
-                This message can be disabled in the BetterPortals config"
+  noWorldLink: >-
+    Unfortunately, this portal will not be lit since the world that you are in is not linked.
+    (if you have changed the name of your world in server.properties, you need to change it in the config)
+    If you believe this to be a mistake, contact an admin and link this wiki page for adding a world link:
+    https://github.com/Lauriethefish/BetterPortals/wiki/Editing-the-Config-file#world-connections
+    BetterPortals overrides the behaviour of plugins like MultiverseNetherPortals, so these should be uninstalled
+    unless you're in a world that is manually excluded in the config.
+    This message can be disabled in the BetterPortals config
 
   # Printed if the player lights a portal over the size limit
   # To disable, just remove all the text inside the quotes.
-  portalTooBig: "This portal is too big. The current size limit is {size}. You can increase it in the BetterPortals config.
-                Please contact an admin if you want this changed."
+  portalTooBig: >-
+    This portal is too big. The current size limit is <size>. You can increase it in the BetterPortals config.
+    Please contact an admin if you want this changed.
 
   # Printed if the player walks through a vanilla nether portal
   # To disable, just remove all of the text inside the quotes
   vanillaPortal: "This is a vanilla nether portal. If you want to view through this portal, you will need to relight it."
 
-  outOfDate: "Your version of BetterPortals is out of date. ({current} vs {new}). You can download the latest release from {url}"
+  outOfDate: "Your version of BetterPortals is out of date. (<current> vs <new>). You can download the latest release from <url>"
 
   reload: "Reloaded plugin"
   originPortalSet: "Origin portal set"
@@ -203,7 +209,7 @@ chatMessages:
   portalsRemoved: "Portals removed"
   startedReconnection: "Started reconnecting to the proxy. See console for details."
   changedName: "Successfully changed the portal name"
-  currentName: "The name for this portal is: {name}"
+  currentName: "The name for this portal is: <name>"
   allowsItems: "This portal allows item teleportation"
   doesNotAllowItems: "This portal does not allow item teleportation"
   changedAllowsItems: "Successfully set that the portal allows item teleportation"
@@ -213,4 +219,4 @@ chatMessages:
   setPosA: "Set position A"
   setPosB: "Set position B"
 
-portalWandName: "&aPortal Wand"
+portalWandName: "<green>Portal Wand</green>"

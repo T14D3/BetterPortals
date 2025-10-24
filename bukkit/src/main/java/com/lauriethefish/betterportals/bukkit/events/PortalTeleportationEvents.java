@@ -5,6 +5,7 @@ import com.lauriethefish.betterportals.bukkit.config.MessageConfig;
 import com.lauriethefish.betterportals.bukkit.config.PortalSpawnConfig;
 import com.lauriethefish.betterportals.bukkit.portal.IPortal;
 import com.lauriethefish.betterportals.bukkit.portal.IPortalManager;
+import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -58,8 +59,8 @@ public class PortalTeleportationEvents implements Listener {
             }
 
             // Send a warning for vanilla nether portals, since players might not realise that they need relighting
-            String warning = messageConfig.getWarningMessage("vanillaPortal");
-            if(!warning.isEmpty()) {
+            Component warning = messageConfig.getWarningMessage("vanillaPortal");
+            if(!warning.equals(Component.empty())) {
                 event.getPlayer().sendMessage(warning);
             }
         }
