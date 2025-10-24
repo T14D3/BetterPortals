@@ -24,7 +24,6 @@ import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @Singleton
 public class TestingCommands {
@@ -44,7 +43,7 @@ public class TestingCommands {
     @Path("betterportals/test/portalBlock")
     @Argument(name = "dataValue")
     @RequiresPlayer
-    @SuppressWarnings("deprecation")
+    @SuppressWarnings("removal")
     public boolean createTestPortalBlock(Player sender, byte dataValue) {
         BlockState state = sender.getLocation().getBlock().getState();
 
@@ -171,7 +170,6 @@ public class TestingCommands {
     @Command
     @Path("betterportals/test/refresh")
     @RequiresPlayer
-    @SuppressWarnings("deprecation")
     public boolean refreshChunk(Player sender) {
         Chunk senderChunk = sender.getLocation().getChunk();
         sender.getWorld().refreshChunk(senderChunk.getX(), senderChunk.getZ());

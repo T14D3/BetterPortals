@@ -25,12 +25,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.lang.reflect.Constructor;
 
 public class MainModule extends AbstractModule {
-    /**
-     * Experimental mode uses NMS implementations of some code to significantly improve performance
-     * TODO: Direct NMS code has been temporarily removed, but left in on another branch
-     * TODO: Enabling this on the master branch will crash
-     */
-    private static final boolean EXPERIMENTAL_MODE = false;
 
     private final BetterPortals pl;
 
@@ -52,14 +46,10 @@ public class MainModule extends AbstractModule {
         install(new EventsModule());
         install(new CommandsModule());
         install(new PortalModule());
-        install(new BlockModule(EXPERIMENTAL_MODE));
+        install(new BlockModule());
         install(new NetworkModule());
         install(new PlayerModule());
-        install(new EntityModule(EXPERIMENTAL_MODE));
-
-        if(EXPERIMENTAL_MODE) {
-            install(createNmsModule());
-        }
+        install(new EntityModule());
     }
 
     private Module createNmsModule() {

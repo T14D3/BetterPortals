@@ -1,5 +1,7 @@
 plugins {
     id 'java'
+    id 'base'
+    id 'xyz.jpenilla.run-paper' version '3.0.2'
 }
 
 allprojects {
@@ -9,7 +11,7 @@ allprojects {
 
     // Optional, just for showing name
     afterEvaluate {
-        println("Evaluating project ${project.group}:${archivesBaseName}:${version}")
+        println("Evaluating project ${project.group}:${project.name}:${version}")
     }
 
     test {
@@ -54,5 +56,36 @@ subprojects {
         version = gradle.ext.versionName
     }
 
-    archivesBaseName = "${rootProject.name}-${project.name}"
+    base {
+        archivesName = "${rootProject.name}-${project.name}"
+    }
+}
+
+/*
+ Keep runServer configuration inside the tasks { } block — that's correct.
+ But configuration that references tasks.named(...) must be at project scope, not nested inside tasks{}.
+*/
+tasks {
+    runServer {
+        downloadPlugins {
+            github("dmulloy2", "ProtocolLib", "5.4.0", "ProtocolLib.jar")
+        }
+        minecraftVersion("1.21.8")
+        runPaper.disablePluginJarDetection()
+
+        pluginJars.from(subprojects.collect {
+            if  (it.name == "final") {
+                return it.projectDir.toPath().resolve("build/libs").resolve("${rootProject.name}-${it.name}-${it.version}-all.jar").toFile()
+            } else {
+                return null
+            }
+        })
+    }
+}
+
+// Ensure runServer runs only after all projects have been compiled / assembled.
+// Use task path strings to avoid forcing task realization during configuration.
+tasks.named('runServer') {
+    dependsOn subprojects.collect { "${it.path}:assemble" }
+    dependsOn subprojects.collect { "${it.path}:classes" }
 }

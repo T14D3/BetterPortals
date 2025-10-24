@@ -37,7 +37,11 @@ public class EntityUtil {
         if (entity instanceof Marker) return null;
 
         net.minecraft.world.entity.Entity nmsEntity = ((CraftEntity) entity).getHandle();
-        ServerEntity serverEntity = new ServerEntity(nmsEntity.level().getMinecraftWorld(), nmsEntity, 10, true, a -> {}, Set.of());
+        ServerEntity serverEntity = new ServerEntity(nmsEntity.level().getMinecraftWorld(), nmsEntity, 10, true,
+                a -> {},
+                (a, b) -> {},
+                Set.of()
+        );
         // nmsEntity.recreateFromPacket(new ClientboundAddEntityPacket(nmsEntity, serverEntity));
         return PacketContainer.fromPacket(new ClientboundAddEntityPacket(nmsEntity, serverEntity));
     }

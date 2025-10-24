@@ -1,0 +1,7 @@
+tasks {
+    test {
+        useJUnitPlatform()
+
+        include "**/*Tests.java"
+    }
+}

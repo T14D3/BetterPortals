@@ -1,25 +1,38 @@
 plugins {
-    id("io.papermc.paperweight.userdev") version "1.7.1"
+    id("io.papermc.paperweight.userdev") version "2.0.0-beta.19"
 }
 
 repositories {
-    maven { url "https://repo.dmulloy2.net/repository/public/" }
-    maven {
-        url = uri("https://repo.papermc.io/repository/maven-public/")
-    }
+    maven { url = uri("https://repo.papermc.io/repository/maven-public/") }
+    maven { url = uri("https://repo.dmulloy2.net/repository/public/") }
+    maven { url = uri("https://hub.spigotmc.org/nexus/content/repositories/snapshots/") }
+    maven { url = uri("https://oss.sonatype.org/content/repositories/snapshots") }
     mavenCentral()
-    maven { url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
-    maven { url = 'https://oss.sonatype.org/content/repositories/snapshots' }
 }
 
-
 dependencies {
-    testImplementation 'net.dmulloy2:ProtocolLib:5.4.0'
-    testImplementation("io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.21.8-R0.1-SNAPSHOT")
+    compileOnly("net.dmulloy2:ProtocolLib:5.4.0")
+    implementation(project(":shared"))
+    implementation(project(":api"))
 
-    implementation project(':shared')
-    implementation project(':api')
-    compileOnly 'net.dmulloy2:ProtocolLib:5.4.0'
-    compileOnly("io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT")
-    paperweight.paperDevBundle("1.21.1-R0.1-SNAPSHOT")
+    testImplementation("io.papermc.paper:paper-api:1.21.8-R0.1-SNAPSHOT")
+    testImplementation("net.dmulloy2:ProtocolLib:5.4.0")
+
+    // JUnit dependencies
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.3")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.3")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.9.3")
+
+    paperweight.paperDevBundle("1.21.8-R0.1-SNAPSHOT")
+}
+
+tasks {
+    test {
+        useJUnitPlatform()
+        // ensure the test runtime classpath includes the launcher
+        classpath += configurations.testRuntimeClasspath
+
+        include "**/Test*.java"
+    }
 }

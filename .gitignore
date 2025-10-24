@@ -20,3 +20,4 @@ commitversion.enable
 lombok.config
 *.class
 *bin/
+/run/

@@ -43,7 +43,7 @@ public class BlockDataUtil {
      */
     public static @Nullable PacketContainer getUpdatePacket(@NotNull BlockState tileState) {
         CraftBlockEntityState<?> state = (CraftBlockEntityState<?>) tileState;
-        Packet<ClientGamePacketListener> updatePacket = state.getTileEntity().getUpdatePacket();
+        Packet<ClientGamePacketListener> updatePacket = state.getBlockEntity().getUpdatePacket();
         if (updatePacket == null) {
             return null;
         }
